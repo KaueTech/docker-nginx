@@ -61,7 +61,6 @@ generate_new_cert_if_missing_or_domains_changed() {
   local SAVED_HASH=""
   [[ -f "$DOMAINS_HASH_FILE" ]] && SAVED_HASH=$(<"$DOMAINS_HASH_FILE")
 
-
   if [[ "$CURRENT_HASH" != "$SAVED_HASH" ]]; then
 
     echo "$CURRENT_HASH" > "$DOMAINS_HASH_FILE"
@@ -125,7 +124,7 @@ EOF
       hsts_header='add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;'
     fi
 
-    cat <<EOF
+    cat <<EOF >> /tmp/nginx.conf.tmp
 server {
   listen 443 ssl $DEFAULT_SERVER;
   ${!var}

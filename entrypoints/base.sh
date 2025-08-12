@@ -4,6 +4,10 @@ set -e
 start_nginx() {
   echo "[nginx] Starting nginx reverse proxy..."
 
+  # echo "======= nginx.conf ======="
+  # cat /etc/nginx/nginx.conf
+  # echo "========================="
+  
   nginx -t
 
   exec nginx -g "daemon off;"
@@ -115,7 +119,7 @@ generate_nginx_conf() {
 
     # Se não achou nenhuma, define o fallback
     if ! $found_map_target; then
-      NGINX_MAP_HOST_AS_TARGET="default http://localhost:8080"
+      NGINX_MAP_HOST_AS_TARGET="default http://localhost:8080;"
     fi
 
     NGINX_SERVER_DEFAULT=$(cat <<'EOF'
@@ -145,7 +149,7 @@ events {
 
 EOF
 
-  local resolver="${NGINX_RESOLVER:-"127.0.0.11 valid=10s"}"
+  local resolver="${NGINX_RESOLVER:-127.0.0.11 valid=10s}"
 
   cat <<EOF >> /tmp/nginx.conf.tmp
 
@@ -159,12 +163,14 @@ EOF
   generate_maps "NGINX_STREAM_MAP_"
   generate_stream_servers
 
+  local default_type="${NGINX_HTTP_DEFAULT_TYPE:-application/octet-stream}"
+
   cat <<EOF >> /tmp/nginx.conf.tmp
 }
 
 http {
   include /etc/nginx/mime.types;
-  default_type ${NGINX_HTTP_DEFAULT_TYPE:-'application/octet-stream'};
+  default_type $default_type;
 
   resolver $resolver;
 
