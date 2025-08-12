@@ -13,6 +13,12 @@ services:
       target: self-signed
     image: kauech/nginx:latest
     restart: no
+    environment:
+      NGINX_MAP_HOST_AS_TARGET: |
+        default http://localhost:8080;
+
+    volumes:
+      - ./data/letsencrypt:/etc/letsencrypt
 
   nginx-cloudflare:
     build:

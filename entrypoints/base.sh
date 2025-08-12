@@ -7,7 +7,7 @@ start_nginx() {
   # echo "======= nginx.conf ======="
   # cat /etc/nginx/nginx.conf
   # echo "========================="
-  
+
   nginx -t
 
   exec nginx -g "daemon off;"
@@ -104,37 +104,46 @@ EOF
   done
 }
 
-generate_nginx_conf() {
 
+default_server_fallback() {
   if [ -z "${NGINX_SERVER_DEFAULT}" ]; then
 
-    found_map_target=false
+  proxy_pass_value=""
+  found_map=false
 
-    while IFS='=' read -r name value; do
-      if [[ "$name" =~ ^NGINX_MAP_.*_AS_TARGET$ ]]; then
-        found_map_target=true
-        break
-      fi
-    done < <(env | grep '^NGINX_MAP_')
-
-    # Se não achou nenhuma, define o fallback
-    if ! $found_map_target; then
-      NGINX_MAP_HOST_AS_TARGET="default http://localhost:8080;"
+  while IFS='=' read -r name value; do
+    if [[ "$name" =~ ^NGINX_MAP_.*_AS_TARGET$ ]]; then
+      proxy_pass_value='$target'
+      found_map=true
+      break
+    elif [[ "$name" =~ ^NGINX_MAP_.*_AS_(.+)$ ]]; then
+      alias_name="${BASH_REMATCH[1],,}"
+      proxy_pass_value="\$$alias_name"
+      found_map=true
     fi
+  done < <(env | grep '^NGINX_MAP_')
 
-    NGINX_SERVER_DEFAULT=$(cat <<'EOF'
+  if $found_map; then
+    NGINX_SERVER_DEFAULT=$(cat <<EOF
 server_name _;
 
 location / {
-    proxy_pass $target;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_pass $proxy_pass_value;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
 }
 EOF
 )
   fi
+fi
+}
+
+
+generate_nginx_conf() {
+
+  default_server_fallback
 
   cat <<EOF >> /tmp/nginx.conf.tmp
 user nginx;
@@ -180,20 +189,11 @@ http {
   ${NGINX_HTTP}
 EOF
 
-  generate_upstreams "NGINX_HTTPS_UPSTREAM_"
-  generate_upstreams "NGINX_HTTP_UPSTREAM_"
   generate_upstreams "NGINX_UPSTREAM_"
-
-  generate_maps "NGINX_HTTPS_MAP_"
-  generate_maps "NGINX_HTTP_MAP_"
   generate_maps "NGINX_MAP_"
 
   generate_force_https_server
-
-  generate_http_servers "NGINX_HTTP_SERVER_"
   generate_http_servers "NGINX_SERVER_"
-
-  generate_https_servers "NGINX_HTTPS_SERVER_"
   generate_https_servers "NGINX_SERVER_"
 
   echo "}" >> /tmp/nginx.conf.tmp
