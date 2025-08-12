@@ -1,0 +1,22 @@
+services:
+
+  # nginx-http:
+  #   build:
+  #     context: .
+  #     target: http
+  #   image: kauech/nginx-http:latest
+  #   restart: no
+
+  nginx:
+    build:
+      context: .
+      target: self-signed
+    image: kauech/nginx:latest
+    restart: no
+
+  nginx-cloudflare:
+    build:
+      context: .
+      target: cloudflare
+    image: kauech/nginx-cloudflare:latest
+    restart: no
