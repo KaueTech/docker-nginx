@@ -1,28 +1,15 @@
 services:
 
-  # nginx-http:
-  #   build:
-  #     context: .
-  #     target: http
-  #   image: kauech/nginx-http:latest
-  #   restart: no
-
   nginx:
-    build:
-      context: .
-      target: self-signed
+
     image: kauech/nginx:latest
-    restart: no
+    ports:
+      - "80:80"
+      - "443:443"
     environment:
       NGINX_MAP_HOST_AS_TARGET: |
         default http://localhost:8080;
-
+      NGINX_FORCE_HTTPS: "true"
     volumes:
       - ./data/letsencrypt:/etc/letsencrypt
-
-  nginx-cloudflare:
-    build:
-      context: .
-      target: cloudflare
-    image: kauech/nginx-cloudflare:latest
-    restart: no
+    restart: unless-stopped
