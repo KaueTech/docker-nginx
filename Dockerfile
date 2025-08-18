@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y certbot curl python3-pip && rm -rf /var
 
 FROM base AS http
 
-COPY ./entrypoint/base.sh /entrypoints/base.sh
+COPY ./entrypoints/base.sh /entrypoints/base.sh
 COPY ./entrypoints/http.sh /entrypoints/http.sh
 
 RUN chmod +x /entrypoints/*.sh
