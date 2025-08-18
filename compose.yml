@@ -1,7 +1,5 @@
 services:
-
   nginx:
-
     image: kauech/nginx:latest
     ports:
       - "80:80"

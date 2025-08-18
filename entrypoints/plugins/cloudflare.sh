@@ -8,7 +8,7 @@ generate_cert() {
   chmod 600 $CLOUDFLARE_FILE
 
   local san_list=""
-  for d in $DOMAINS; do
+  for d in $NGINX_DOMAINS; do
     san_list+=" -d $d"
   done
   

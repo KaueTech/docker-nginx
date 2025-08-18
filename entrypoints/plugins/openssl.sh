@@ -4,7 +4,7 @@ source /entrypoints/https.sh
 
 generate_cert() {
   local san_list=""
-  for d in $DOMAINS; do
+  for d in $NGINX_DOMAINS; do
     san_list+="DNS:${d},"
   done
   san_list="${san_list%,}" # remove última vírgula

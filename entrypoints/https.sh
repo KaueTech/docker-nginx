@@ -3,13 +3,13 @@ set -e
 
 source /entrypoints/base.sh
 
-if [[ -z "$DOMAINS" ]]; then
-    DOMAINS="localhost *.localhost"
+if [[ -z "$NGINX_DOMAINS" ]]; then
+    NGINX_DOMAINS="localhost *.localhost"
 fi
 
-MAIN_DOMAIN=$(awk '{print $1}' <<< "$DOMAINS")
+MAIN_DOMAIN=$(awk '{print $1}' <<< "$NGINX_DOMAINS")
 
-CURRENT_HASH=$(sha1sum <<< "$DOMAINS" | awk '{print $1}')
+CURRENT_HASH=$(sha1sum <<< "$NGINX_DOMAINS" | awk '{print $1}')
 
 CERT_DIR="/etc/letsencrypt/live/${MAIN_DOMAIN}"
 
