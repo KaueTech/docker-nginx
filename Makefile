@@ -65,10 +65,12 @@ build-all: setup-buildx ## Build and push all variants for all architectures
 	@echo "$(BLUE)[INFO]$(NC) Building all variants for all architectures..."
 	@for plugin in $(PLUGINS); do \
 		echo "$(BLUE)[INFO]$(NC) Building $$plugin variant..."; \
-		if [ "$$plugin" = "openssl" ]; then \
+		if [ "$$plugin" = "http" ]; then \
 			docker buildx build --platform $(PLATFORMS) --target $$plugin \
 				-t $(DOCKER_REGISTRY)/$(IMAGE_NAME):latest \
 				-t $(DOCKER_REGISTRY)/$(IMAGE_NAME):$(VERSION) \
+				-t $(DOCKER_REGISTRY)/$(IMAGE_NAME):$$plugin \
+				-t $(DOCKER_REGISTRY)/$(IMAGE_NAME):$$plugin-$(VERSION) \
 				--push .; \
 		else \
 			docker buildx build --platform $(PLATFORMS) --target $$plugin \

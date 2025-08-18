@@ -108,36 +108,36 @@ EOF
 default_server_fallback() {
   if [ -z "${NGINX_SERVER_DEFAULT}" ]; then
 
-  proxy_pass_value=""
-  found_map=false
+    proxy_pass_value=""
+    found_map=false
 
-  while IFS='=' read -r name value; do
-    if [[ "$name" =~ ^NGINX_MAP_.*_AS_TARGET$ ]]; then
-      proxy_pass_value='$target'
-      found_map=true
-      break
-    elif [[ "$name" =~ ^NGINX_MAP_.*_AS_(.+)$ ]]; then
-      alias_name="${BASH_REMATCH[1],,}"
-      proxy_pass_value="\$$alias_name"
-      found_map=true
+    while IFS='=' read -r name value; do
+      if [[ "$name" =~ ^NGINX_MAP_.*_AS_TARGET$ ]]; then
+        proxy_pass_value='$target'
+        found_map=true
+        break
+      elif [[ "$name" =~ ^NGINX_MAP_.*_AS_(.+)$ ]]; then
+        alias_name="${BASH_REMATCH[1],,}"
+        proxy_pass_value="\$$alias_name"
+        found_map=true
+      fi
+    done < <(env | grep '^NGINX_MAP_')
+
+    if $found_map; then
+      NGINX_SERVER_DEFAULT=$(cat <<EOF
+  server_name _;
+
+  location / {
+      proxy_pass $proxy_pass_value;
+      proxy_set_header Host \$host;
+      proxy_set_header X-Real-IP \$remote_addr;
+      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+  EOF
+  )
     fi
-  done < <(env | grep '^NGINX_MAP_')
-
-  if $found_map; then
-    NGINX_SERVER_DEFAULT=$(cat <<EOF
-server_name _;
-
-location / {
-    proxy_pass $proxy_pass_value;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-}
-EOF
-)
   fi
-fi
 }
 
 
