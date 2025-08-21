@@ -1,6 +1,9 @@
 services:
   nginx:
-    image: kauech/nginx:latest
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+      target: openssl
     ports:
       - "80:80"
       - "443:443"

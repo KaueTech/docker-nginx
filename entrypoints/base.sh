@@ -1,12 +1,11 @@
 #!/bin/bash
-set -e
 
 start_nginx() {
   echo "[nginx] Starting nginx reverse proxy..."
 
-  # echo "======= nginx.conf ======="
-  # cat /etc/nginx/nginx.conf
-  # echo "========================="
+  echo "======= nginx.conf ======="
+  cat /etc/nginx/nginx.conf
+  echo "========================="
 
   nginx -t
 
@@ -17,9 +16,9 @@ start_nginx() {
 generate_stream_servers() {
   for var in $(compgen -v | grep '^NGINX_STREAM_SERVER_'); do
     cat <<EOF
-server {
-  ${!var}
-}
+  server {
+    ${!var}
+  }
 EOF
   done
 }
@@ -28,12 +27,12 @@ generate_force_https_server() {
 
   if [ "${NGINX_FORCE_HTTPS,,}" = "true" ]; then
     cat <<EOF >> /tmp/nginx.conf.tmp
-server {
-  listen 80 default_server;
-  server_name _;
+  server {
+    listen 80 default_server;
+    server_name _;
 
-  return 301 https://\$host\$request_uri;
-}
+    return 301 https://\$host\$request_uri;
+  }
 EOF
   fi
 }
@@ -51,10 +50,10 @@ generate_http_servers() {
       fi
 
       cat <<EOF >> /tmp/nginx.conf.tmp
-server {
-  listen 80 $default_server;
-  ${!var}
-}
+  server {
+    listen 80 $default_server;
+    ${!var}
+  }
 EOF
     done
   fi
@@ -82,7 +81,7 @@ generate_maps() {
   local prefix="$1"
 
   for var in $(compgen -v | grep "^${prefix}"); do
-    rest=$(echo "${var#$prefix}" | tr '[:upper:]' '[:lower:]')
+    rest=$(tr '[:upper:]' '[:lower:]' <<< "${var#"$prefix"}")
 
     if [[ "$rest" =~ ^(.+)_as_(.+)$ ]]; then
       map_key_name="${BASH_REMATCH[1]}"
@@ -113,7 +112,7 @@ default_server_fallback() {
 
     while IFS='=' read -r name value; do
       if [[ "$name" =~ ^NGINX_MAP_.*_AS_TARGET$ ]]; then
-        proxy_pass_value='$target'
+        proxy_pass_value="\$target"
         found_map=true
         break
       elif [[ "$name" =~ ^NGINX_MAP_.*_AS_(.+)$ ]]; then
@@ -125,16 +124,16 @@ default_server_fallback() {
 
     if $found_map; then
       NGINX_SERVER_DEFAULT=$(cat <<EOF
-  server_name _;
+    server_name _;
 
-  location / {
-      proxy_pass $proxy_pass_value;
-      proxy_set_header Host \$host;
-      proxy_set_header X-Real-IP \$remote_addr;
-      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto \$scheme;
-  }
-  EOF
+    location / {
+        proxy_pass $proxy_pass_value;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+EOF
   )
     fi
   fi

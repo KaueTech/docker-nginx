@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 source /entrypoints/https.sh
 
@@ -33,7 +34,7 @@ EOF
   openssl req -x509 -new -key "$CERT_PRIVKEY" \
     -out "$CERT_FULLCHAIN" \
     -days 90 -sha256 \
-    -config $sslconf
+    -config "$sslconf"
 
   # rm -f "$sslconf"
 

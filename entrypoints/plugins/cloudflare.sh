@@ -2,10 +2,10 @@
 source /entrypoints/https.sh
 
 CLOUDFLARE_FILE=$CERT_DIR/cloudflare.ini
-echo "dns_cloudflare_api_token = $CLOUDFLARE_TOKEN" > $CLOUDFLARE_FILE
+echo "dns_cloudflare_api_token = $CLOUDFLARE_TOKEN" > "$CLOUDFLARE_FILE"
 
 generate_cert() { 
-  chmod 600 $CLOUDFLARE_FILE
+  chmod 600 "$CLOUDFLARE_FILE"
 
   local san_list=""
   for d in $NGINX_DOMAINS; do
@@ -14,8 +14,8 @@ generate_cert() {
   
   certbot certonly \
     --dns-cloudflare \
-    --dns-cloudflare-credentials $CLOUDFLARE_FILE \
-    $san_list \
+    --dns-cloudflare-credentials "$CLOUDFLARE_FILE" \
+    "$san_list" \
     --email "$CERT_EMAIL" \
     --agree-tos \
     --non-interactive \
@@ -25,7 +25,7 @@ generate_cert() {
 }
 
 renew_cert() {
-    certbot renew --dns-cloudflare --dns-cloudflare-credentials $CLOUDFLARE_FILE --quiet --deploy-hook "nginx -s reload"
+    certbot renew --dns-cloudflare --dns-cloudflare-credentials "$CLOUDFLARE_FILE" --quiet --deploy-hook "nginx -s reload"
 }
 
 main "$@"

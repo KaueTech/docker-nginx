@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 source /entrypoints/base.sh
 
@@ -32,8 +31,12 @@ main() {
 
 renew_cert_loop() {
   while true; do
-    local now_ts=$(date +%s)
-    local expiry_ts=$(get_cert_expiry_ts)
+
+    local now_ts
+    local expiry_ts
+
+    now_ts=$(date +%s)
+    expiry_ts=$(get_cert_expiry_ts)
     local seconds_left=$(( expiry_ts - now_ts ))
     local days_left=$(( seconds_left / 86400 ))
 
@@ -50,7 +53,7 @@ renew_cert_loop() {
       if (( sleep_sec < 60 )); then
         sleep_sec=60 # 60s
       fi
-      echo "[openssl] Dormindo até 30 dias antes da expiração ($(($sleep_sec / 3600)) horas)..."
+      echo "[openssl] Dormindo até 30 dias antes da expiração ($((sleep_sec / 3600)) horas)..."
       sleep $sleep_sec
     fi
   done
@@ -95,20 +98,22 @@ generate_https_servers() {
   local ssl_ciphers=${NGINX_SSL_CIPHERS:-HIGH:!aNULL:!MD5}
   local ssl_prefer_server_ciphers=${NGINX_SSL_PREFER_SERVER_CIPHERS:-on}
 
-  local https_certificate=$(cat <<EOF
+  local https_certificate
 
-ssl_certificate ${CERT_DIR}/fullchain.pem;
-ssl_certificate_key ${CERT_DIR}/privkey.pem;
+  https_certificate=$(cat <<EOF
 
-ssl_protocols $ssl_protocols;
-ssl_prefer_server_ciphers $ssl_prefer_server_ciphers;
-ssl_ciphers $ssl_ciphers;
+    ssl_certificate ${CERT_DIR}/fullchain.pem;
+    ssl_certificate_key ${CERT_DIR}/privkey.pem;
 
-location /ssl {
-    alias ${CERT_DIR}/fullchain.pem;
-    add_header Content-Disposition "attachment; filename=${MAIN_DOMAIN}.crt";
-    default_type application/x-x509-ca-cert;
-}
+    ssl_protocols $ssl_protocols;
+    ssl_prefer_server_ciphers $ssl_prefer_server_ciphers;
+    ssl_ciphers $ssl_ciphers;
+
+    location /ssl {
+      alias ${CERT_DIR}/fullchain.pem;
+      add_header Content-Disposition "attachment; filename=${MAIN_DOMAIN}.crt";
+      default_type application/x-x509-ca-cert;
+    }
 EOF
 )
 
@@ -125,12 +130,12 @@ EOF
     fi
 
     cat <<EOF >> /tmp/nginx.conf.tmp
-server {
-  listen 443 ssl $DEFAULT_SERVER;
-  ${!var}
-  $hsts_header
-  $https_certificate
-}
+  server {
+    listen 443 ssl $DEFAULT_SERVER;
+${!var}
+    $hsts_header
+    $https_certificate
+  }
 EOF
 
 

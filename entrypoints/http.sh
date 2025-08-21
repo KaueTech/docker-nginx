@@ -10,7 +10,7 @@ main() {
 }
 
 generate_https_servers() {
-  local prefix="$1" 
+  true;
 }
 
 main "$@"
