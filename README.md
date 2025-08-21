@@ -1,10 +1,12 @@
 # Docker Nginx
 
-A production-ready Docker Nginx image with multiple configurations for reverse proxy, SSL termination, and automatic certificate management.
+A production-ready Docker Nginx image with multiple configurations for reverse
+proxy, SSL termination, and automatic certificate management.
 
 ## 🚀 Features
 
-- **Multiple Configurations**: HTTP, HTTPS with openssl certificates, and Cloudflare DNS
+- **Multiple Configurations**: HTTP, HTTPS with openssl certificates, and
+  Cloudflare DNS
 - **Automatic SSL**: Let's Encrypt certificates with Cloudflare DNS challenge
 - **Reverse Proxy**: Easy upstream configuration with environment variables
 - **Multi-Architecture**: Supports AMD64, ARM64, and ARMv7
@@ -118,13 +120,13 @@ For detailed build instructions, see the [Build Guide](docs/BUILD.md).
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NGINX_MAP_HOST_AS_TARGET` | Host to upstream mapping | `default http://localhost:8080;` |
-| `NGINX_FORCE_HTTPS` | Redirect HTTP to HTTPS | `false` |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token | - |
-| `CERT_EMAIL` | Cert email | - |
-| `DOMAINS` | Domain for SSL certificate | - |
+| Variable                   | Description                | Default                          |
+| -------------------------- | -------------------------- | -------------------------------- |
+| `NGINX_MAP_HOST_AS_TARGET` | Host to upstream mapping   | `default http://localhost:8080;` |
+| `NGINX_FORCE_HTTPS`        | Redirect HTTP to HTTPS     | `false`                          |
+| `CLOUDFLARE_API_TOKEN`     | Cloudflare API token       | -                                |
+| `CERT_EMAIL`               | Cert email                 | -                                |
+| `DOMAINS`                  | Domain for SSL certificate | -                                |
 
 ### Basic Configuration
 
@@ -151,7 +153,8 @@ docker run -d \
 
 ## 🐳 Docker Compose Examples
 
-For comprehensive Docker Compose examples, see the [Examples Guide](docs/EXAMPLES.md).
+For comprehensive Docker Compose examples, see the
+[Examples Guide](docs/EXAMPLES.md).
 
 ### Quick Start
 
@@ -167,7 +170,7 @@ docker-compose up -d
 ### Basic Example
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   nginx:
@@ -281,7 +284,8 @@ docker stop test-openssl
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
 ## 🤝 Support
 

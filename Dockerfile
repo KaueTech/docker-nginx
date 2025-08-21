@@ -1,55 +1,36 @@
-# Multi-stage Dockerfile for nginx with different configurations
-# Supports HTTP, HTTPS with openssl, and various DNS providers
-FROM --platform=$BUILDPLATFORM nginx:latest AS base
+ARG PLUGIN=http
 
+FROM --platform=$BUILDPLATFORM nginx:latest AS base
+COPY ./entrypoints/base.sh /entrypoints/base.sh
 EXPOSE 80
 
-# HTTPS base image with OpenSSL
 FROM base AS https
-
+COPY ./entrypoints/https.sh /entrypoints/https.sh
 EXPOSE 443
-
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
-# Certbot base image for SSL certificate management
 FROM https AS certbot
 RUN apt-get update && apt-get install -y certbot curl python3-pip && rm -rf /var/lib/apt/lists/*
 
-##################################
-# BASIC NGINX IMAGE
-##################################
+##########
+# PLUGINS
+##########
 
-FROM base AS http
+FROM base AS plugin-http
+COPY ./entrypoints/plugins/http.sh /entrypoints/entrypoint.sh
 
-COPY ./entrypoints/base.sh /entrypoints/base.sh
-COPY ./entrypoints/http.sh /entrypoints/http.sh
+FROM https AS plugin-openssl
+COPY ./entrypoints/plugins/openssl.sh /entrypoints/entrypoint.sh
 
-RUN chmod +x /entrypoints/*.sh
-ENTRYPOINT ["/entrypoints/http.sh"]
-
-##################################
-# HTTPS with openssl certificates
-##################################
-
-FROM https AS openssl
-
-COPY ./entrypoints/base.sh /entrypoints/base.sh
-COPY ./entrypoints/https.sh /entrypoints/https.sh
-COPY ./entrypoints/plugins/openssl.sh /entrypoints/plugins/openssl.sh
-
-RUN chmod +x /entrypoints/**/*.sh || true
-ENTRYPOINT ["/entrypoints/plugins/openssl.sh"]
-
-############################
-# HTTPS with Cloudflare API
-############################
-
-FROM certbot AS cloudflare
+FROM certbot AS plugin-cloudflare
 RUN apt-get update && apt-get install -y python3-certbot-dns-cloudflare && rm -rf /var/lib/apt/lists/*
+COPY ./entrypoints/plugins/cloudflare.sh /entrypoints/entrypoint.sh
 
-COPY ./entrypoints/base.sh /entrypoints/base.sh
-COPY ./entrypoints/https.sh /entrypoints/https.sh
-COPY ./entrypoints/plugins/cloudflare.sh /entrypoints/plugins/cloudflare.sh
+########
+# FINAL
+########
 
-RUN chmod +x /entrypoints/**/*.sh || true
-ENTRYPOINT ["/entrypoints/plugins/cloudflare.sh"]
+FROM plugin-$PLUGIN AS final
+
+RUN chmod +x /entrypoints/*.sh || true
+ENTRYPOINT ["/entrypoints/entrypoint.sh"]
